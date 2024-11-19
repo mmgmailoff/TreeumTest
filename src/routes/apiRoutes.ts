@@ -21,3 +21,10 @@ export const getAlbumTracks = async (artist: string, album: string) => {
     album: album,
   });
 };
+
+export const searchAlbums = async (album: string) => {
+  return fetchService.get('/', {
+    method: 'album.search',
+    album,
+  });
+};

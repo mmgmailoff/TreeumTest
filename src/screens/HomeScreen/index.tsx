@@ -8,10 +8,10 @@ import {
   StyleSheet,
   Image,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
-
-import {getTopAlbums} from '../../routes/apiRoutes';
+import {getTopAlbums, searchAlbums} from '../../routes/apiRoutes';
 import {storage} from '../../navigation';
 import {RootStackParamList} from '../../navigation';
 
@@ -28,6 +28,19 @@ interface Props {
 const HomeScreen: React.FC<Props> = ({navigation}) => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [searchVal, setSearchVal] = useState<string>('');
+
+  function debounce(func: (...args: any[]) => void, delay: number) {
+    let timer: NodeJS.Timeout;
+    return (...args: any[]) => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+      timer = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
+  }
 
   const handleOpenAlbum = useCallback(
     (item: Album) =>
@@ -43,22 +56,49 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
     [navigation],
   );
 
-  useEffect(() => {
-    const fetchAlbums = async () => {
-      try {
-        const data = await getTopAlbums('disco');
-        console.log('data', data);
-        const dataAlbums = Array.isArray(data?.albums?.album)
-          ? data.albums.album
-          : [];
-        setAlbums(dataAlbums);
-      } catch (error) {
-        console.error('Error fetching albums:', JSON.stringify(error));
-      } finally {
-        setLoading(false);
+  const handleSearch = useCallback(
+    debounce(async (val: string) => {
+      if (val.trim()) {
+        setLoading(true);
+        try {
+          const data = await searchAlbums(val);
+          console.log('data search', data);
+          const dataAlbums = Array.isArray(data?.results?.albummatches?.album)
+            ? data?.results?.albummatches?.album
+            : [];
+          setAlbums(dataAlbums);
+        } catch (error) {
+          console.error('Error searching albums:', JSON.stringify(error));
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        fetchAlbums();
       }
-    };
+    }, 300),
+    [],
+  );
 
+  const handleInputChange = (text: string) => {
+    setSearchVal(text);
+    handleSearch(text);
+  };
+
+  const fetchAlbums = async () => {
+    try {
+      const data = await getTopAlbums('disco');
+      const dataAlbums = Array.isArray(data?.albums?.album)
+        ? data.albums.album
+        : [];
+      setAlbums(dataAlbums);
+    } catch (error) {
+      console.error('Error fetching albums:', JSON.stringify(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchAlbums();
   }, []);
 
@@ -68,12 +108,18 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
         <Text style={styles.textGreeting}>
           {`Hello ${storage.getString('email') ?? ''}`}
         </Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search albums..."
+          value={searchVal}
+          onChangeText={handleInputChange}
+        />
       </View>
       <View style={styles.container}>
         <View style={styles.scrollWrapper}>
           {loading ? (
             <ActivityIndicator size="large" />
-          ) : (
+          ) : albums.length > 0 ? (
             <FlatList
               data={albums}
               keyExtractor={item => item.name}
@@ -97,6 +143,8 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
                 </TouchableOpacity>
               )}
             />
+          ) : (
+            <Text style={styles.noResults}>No search results found.</Text>
           )}
         </View>
       </View>
@@ -125,6 +173,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
   },
+  searchInput: {
+    marginTop: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    width: '100%',
+  },
   albumItem: {
     marginBottom: 15,
     flexDirection: 'row',
@@ -146,6 +202,12 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     flexShrink: 1,
     paddingVertical: 5,
+  },
+  noResults: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#999',
+    marginTop: 20,
   },
 });
 
