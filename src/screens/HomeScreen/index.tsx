@@ -17,7 +17,7 @@ import {RootStackParamList} from '../../navigation';
 
 interface Album {
   name: string;
-  artist: {name: string};
+  artist: {name: string} | string;
   image: {'#text': string}[];
 }
 
@@ -43,16 +43,23 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   }
 
   const handleOpenAlbum = useCallback(
-    (item: Album) =>
+    (item: Album) => {
+      const artistName =
+        typeof item.artist === 'string' ? item.artist : item.artist.name;
       navigation.navigate('Album', {
-        artist: item.artist.name,
+        artist: artistName,
         album: item.name,
-      }),
+      });
+    },
     [navigation],
   );
 
   const handleOpenArtist = useCallback(
-    (item: Album) => navigation.navigate('Artist', {artist: item.artist.name}),
+    (item: Album) => {
+      const artistName =
+        typeof item.artist === 'string' ? item.artist : item.artist.name;
+      navigation.navigate('Artist', {artist: artistName});
+    },
     [navigation],
   );
 
