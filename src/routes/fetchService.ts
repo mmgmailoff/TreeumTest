@@ -33,25 +33,6 @@ class FetchService {
       throw error;
     }
   }
-
-  async post(endpoint: string, params: Record<string, string>) {
-    try {
-      const response = await fetch(`${LASTFM_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams(params).toString(),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    } catch (error) {
-      console.error('Error in POST request:', error);
-      throw error;
-    }
-  }
 }
 
 export default FetchService.getInstance();

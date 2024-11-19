@@ -1,6 +1,5 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import {
-  SafeAreaView,
   View,
   Text,
   FlatList,
@@ -11,15 +10,11 @@ import {
   TextInput,
 } from 'react-native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+
 import {getTopAlbums, searchAlbums} from '../../routes/apiRoutes';
 import {storage} from '../../navigation';
 import {RootStackParamList} from '../../navigation';
-
-interface Album {
-  name: string;
-  artist: {name: string} | string;
-  image: {'#text': string}[];
-}
+import {Album} from '../../types';
 
 interface Props {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -110,7 +105,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   }, []);
 
   return (
-    <SafeAreaView style={styles.root}>
+    <View style={styles.root}>
       <View style={styles.greeting}>
         <Text style={styles.textGreeting}>
           {`Hello ${storage.getString('email') ?? ''}`}
@@ -155,7 +150,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           )}
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

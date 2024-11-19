@@ -12,16 +12,7 @@ import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 import {getAlbumTracks} from '../../routes/apiRoutes';
 import {RootStackParamList} from '../../navigation';
-
-interface Track {
-  name: string;
-}
-
-interface AlbumData {
-  artist: string;
-  image: {'#text': string}[];
-  tracks?: {track: Track[]};
-}
+import {AlbumData} from '../../types';
 
 interface Props {
   route: RouteProp<RootStackParamList, 'Album'>;
